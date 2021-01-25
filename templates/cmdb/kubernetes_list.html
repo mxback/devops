@@ -1,0 +1,87 @@
+{% extends 'base/layout.html' %}
+{% load get_users %}
+
+{% block page-content %}
+    <div class="luffy-container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <i class="fa fa-filter" aria-hidden="true"></i> 快速筛选
+            </div>
+            <div class="panel-body">
+                <div class="search-group">
+                    {% for row in search_group_row_list %}
+                        <div class="row">
+                            {% for obj in row %}
+                                {{ obj|safe }}
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="btn-group" style="margin: 5px 0">
+            <a class="btn btn-default" href="{% url 'cmdb:k8s_add' %}">
+                <i class="fa fa-plus-square" aria-hidden="true"></i> 添加Kubernetes容器
+            </a>
+        </div>
+        <div style="float: right;">
+            <form method="GET" class="form-inline">
+                <div class="form-group">
+                    <input class="form-control" type="text" name="keyword" value="{{ keyword|default_if_none:'' }}"
+                           placeholder="关键字搜索">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>平台名称</th>
+                <th>项目组名称</th>
+                <th>K8S种类</th>
+                <th>命名空间</th>
+                <th>名称</th>
+                <th>最小CPU</th>
+                <th>最大CPU</th>
+                <th>最小内存</th>
+                <th>最大内存</th>
+                <th>选项</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in object_list %}
+                <tr>
+                    <td>{{ row.id }}</td>
+                    <td>{{ row.paas }}</td>
+                    <td>{% for item in row.project_group.all %}{{ item.name_cn }}, {% endfor %}</td>
+                    <td>{{ row.kind }}</td>
+                    <td>{{ row.namespace }}</td>
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.limits_cpu }}</td>
+                    <td>{{ row.requests_cpu }}</td>
+                    <td>{{ row.limits_memory }}</td>
+                    <td>{{ row.requests_memory }}</td>
+                    <td>
+                        <a href="{% url 'cmdb:k8s_update' row.id %}" class="btn btn-primary btn-xs">编辑</a>
+                        <a href="{% url 'cmdb:k8s_delete' row.id %}" class="btn btn-danger btn-xs">删除</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="row">
+            <div class="col-md-4">
+                <p style="margin-top: 10px"> 显示 [{{ page_obj.paginator.count }}] 条数据中的 第 [{{ page_obj.start_index }}] 至
+                    [{{ page_obj.end_index }}] 的数据</p>
+            </div>
+            <div class="col-md-8">
+                {% if page_obj.paginator.num_pages > 1 %}
+                    {% include '_paginator.html' %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'base/layout.html' %}
+{% load static %}
+
+{% block page-content %}
+<div class="row">
+    <div class="panel">
+        <div class="panel-body">
+            <!--添加及搜索行-->
+            <div class="row">
+                <!--添加按钮-->
+                <!-- {% if perms.users.add_userprofile %} -->
+                <div class="col-sm-6">
+                    <div class="m-b-30">
+                        <a href="{% url 'users:user_add' %}" type="button" class="btn btn-primary waves-effect waves-light">添加用户 <i class="fa fa-plus"></i></a>
+                    </div>
+                </div>
+                <!-- {% endif %} -->
+
+                <!--搜索-->
+                <div class="col-md-4" style="float: right">
+                    <form class="form-horizontal" role="form">
+                        <div class="input-group">
+                            <input type="text"  name="keyword" class="form-control"  value="{{ keyword|default_if_none:'' }}" placeholder="关键字">
+                            <span class="input-group-btn">
+                                <button type="submit" class="btn btn-effect-ripple btn-primary">搜索</button>
+                            </span>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+
+            <!--表格渲染数据-->
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>UID</th>
+                        <th>用户名</th>
+                        <th>中文名</th>
+                        <th>手机</th>
+                        <th>性别</th>
+                        <!-- {% if perms.users.change_userprofile or perms.users.delete_userprofile %} -->
+                        <th>操作</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for user in object_list %}
+                <tr class="gradeA">
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.phone }}</td>
+                    <td>{{ user.get_sex_display }}</td>
+		            <!-- {% if perms.users.change_userprofile or perms.users.delete_userprofile %} -->
+                    <td class="actions">
+                    <!-- {% if perms.users.change_userprofile %} -->
+                    <a href="{% url 'users:password_change' user.id %}" class="btn btn-warning btn-xs">重置密码</a>
+                    <a href="{% url 'users:user_update' user.id %}" class="btn btn-primary btn-xs">编辑</a>
+                    <!-- {% endif %} -->
+                    <!-- {% if perms.users.delete_userprofile %} -->
+                    <a href="{% url 'users:user_del' user.id %}" class="btn btn-danger btn-xs">删除</a>
+                    <!-- {% endif %} -->
+                    </td>
+                    <!-- {% endif %} -->
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!--分页-->
+        <div class="row">
+            <div class="col-md-4">
+               <p style="margin-top: 10px"> 显示 [{{ page_obj.paginator.count }}] 条数据中的 第 [{{ page_obj.start_index }}] 至 [{{ page_obj.end_index }}] 的数据</p>
+            </div>
+            <div class="col-md-8">
+                 {% if page_obj.paginator.num_pages > 1 %}
+                    {% include '_paginator.html' %}
+                 {% endif %}
+            </div>
+        </div>
+    </div> <!-- end Panel -->
+</div> <!-- End row -->
+{% endblock %}
+
+{% block js %}
+    <script>
+        $('.user').addClass('active');
+        $('.user .users').addClass('active');
+    </script>
+{% endblock %}
+

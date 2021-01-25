@@ -1,0 +1,86 @@
+{% extends 'base/layout.html' %}
+{% load get_users %}
+
+{% block page-content %}
+<div class="luffy-container">
+    <div class="btn-group" style="margin: 5px 0">
+        <a class="btn btn-default" href="{% url 'task:task_add' %}">
+            <i class="fa fa-plus-square" aria-hidden="true"></i> 添加服务器任务
+        </a>
+    </div>
+    <div class="btn-group" style="margin: 5px 0">
+        <a class="btn btn-default" href="#">
+            <i class="fa fa-plus-square" aria-hidden="true"></i> 添加容器任务
+        </a>
+    </div>
+    <div style="float: right;">
+        <form method="GET" class="form-inline">
+            <div class="form-group">
+                <input class="form-control" type="text" name="keyword" value="{{ keyword|default_if_none:'' }}"
+                       placeholder="关键字搜索">
+                <button class="btn btn-primary" type="submit">
+                    <i class="fa fa-search" aria-hidden="true"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+    <table class="table table-bordered table-hover">
+        <thead>
+        <tr>
+            <th>任务名称</th>
+            <th>上线主机</th>
+            <th>提交人</th>
+            <th>提交时间</th>
+            <th>审核人</th>
+            <th>审核时间</th>
+            <th>状态</th>
+            <th>动作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for task in object_list %}
+        <tr>
+            <td>{{ task.name }}</td>
+            <td>{{ task.dest_hosts.all|get_host_names2 }}</td>
+            <td>{{ task.applicant }}</td>
+            <td>{{ task.created_at }}</td>
+            <td>{{ task.reviewer|default_if_none:'暂无' }}</td>
+            <td>{{ task.review_at|default_if_none:'暂无' }}</td>
+            <td><label class="label {% if task.status == 0 %}label-warning{% elif task.status == 2 %}label-info{% endif %}">{{ task.get_status_display }}</label></td>
+            <td>
+                <a href="{% url 'task:task_detail' task.id %}" class="btn btn-primary btn-xs">
+                    {% if task.status == 0 %}
+                        {% if task.applicant == user %}查看
+                            {% elif task.applicant != user and perms.task.review_task %}审核
+                    {% endif %}
+
+                    {% elif task.status == 2 %}
+                        {% if task.applicant == user %}发布
+                            {% elif perms.task.review_task %}查看
+                        {% endif %}
+                    {% endif %}</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="row">
+        <div class="col-md-4">
+            <p style="margin-top: 10px"> 显示 [{{ page_obj.paginator.count }}] 条数据中的 第 [{{ page_obj.start_index }}] 至
+                [{{ page_obj.end_index }}] 的数据</p>
+        </div>
+        <div class="col-md-8">
+            {% if page_obj.paginator.num_pages > 1 %}
+            {% include '_paginator.html' %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    $('.task').addClass('active');
+    $('.task .task_list').addClass('active');
+</script>
+{% endblock %}

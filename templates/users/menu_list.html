@@ -1,0 +1,84 @@
+{% extends 'base/layout.html' %}
+
+{% block css %}
+    <style>
+        tr.active {
+            border-left: 3px solid #fdc00f;
+        }
+    </style>
+{% endblock %}
+{% block page-content %}
+    <div class="luffy-container">
+        <div class="col-md-4">
+            <div class="bs-example" data-example-id="table-within-panel">
+                <div class="panel panel-default">
+                    <!-- Default panel contents -->
+                    <div class="panel-heading">
+                        <i class="fa fa-book" aria-hidden="true"></i> 一级菜单
+                        <a href="{% url 'users:menu_add' %}" class="right btn btn-success btn-xs"
+                           style="padding: 2px 8px;margin: -3px;">
+                            <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                            新建
+                        </a>
+                    </div>
+                    <!-- Table -->
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>图标</th>
+                            <th>选项</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for row in menus %}
+                            <tr class="{% if row.id|safe == menu_id %}active{% endif %}">
+                                <td><a href="?mid={{ row.id }}">{{ row.title }}</a></td>
+                                <td><i class="fa {{ row.icon }}" aria-hidden="true"></i></td>
+                                <td>
+                                        <a href="{% url 'users:menu_update' pk=row.id %}" class="btn btn-primary btn-xs">编辑</a>
+                                        <a href="{% url 'users:menu_del' pk=row.id %}" class="btn btn-danger btn-xs">删除</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="col-md-6">
+            <div class="bs-example" data-example-id="table-within-panel">
+                <div class="panel panel-default">
+                    <!-- Default panel contents -->
+                    <div class="panel-heading">
+                        <i class="fa fa-cubes" aria-hidden="true"></i> 二级菜单
+                    </div>
+
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>CODE</th>
+                            <th>URL</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in second_menu %}
+                            <tr class="{% if row.id|safe == second_menu_id %}active{% endif %}">
+                                <td><a href="?mid={{ menu_id }}&sid={{ row.id }}">{{ row.title }}</a></td>
+                                <td>{{ row.name }}</td>
+                                <td>{{ row.url }}</td>
+                            </tr>
+
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

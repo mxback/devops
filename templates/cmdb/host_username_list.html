@@ -1,0 +1,65 @@
+{% extends 'base/layout.html' %}
+{% load get_users %}
+
+{% block page-content %}
+
+    <div class="luffy-container">
+        <div class="btn-group" style="margin: 5px 0">
+            <a class="btn btn-default" href="{% url 'cmdb:host_username_add' %}">
+                <i class="fa fa-plus-square" aria-hidden="true"></i> 添加主机用户
+            </a>
+        </div>
+        <div style="float: right;">
+            <form method="GET" class="form-inline">
+                <div class="form-group">
+                    <input class="form-control" type="text" name="keyword" value="{{ keyword|default_if_none:'' }}"
+                           placeholder="关键字搜索">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+{#                <th>选择</th>#}
+                <th>ID</th>
+                <th>主机名称</th>
+                <th>私网IP地址</th>
+                <th>公网IP地址</th>
+                <th>用户名</th>
+                <th>选项</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in object_list %}
+                <tr>
+{#                    <td><input type="checkbox" name="pk" value="{{ row.id }}"/></td>#}
+                    <td>{{ row.id }}</td>
+                    <td>{{ row.host.instance_name }}</td>
+                    <td>{{ row.host.private_ip }}</td>
+                    <td>{% if row.host.public_ip %}{{ row.host.public_ip }}{% else %}-{% endif %}</td>
+                    <td>{{ row.username }}</td>
+                    <td>
+                        <a href="{% url 'cmdb:host_username_update' row.id %}" class="btn btn-primary btn-xs">编辑</a>
+                        <a href="{% url 'cmdb:host_username_delete' row.id %}" class="btn btn-danger btn-xs">删除</a>
+                        <a href="{% url 'cmdb:host_password' user.id %}" class="btn btn-warning btn-xs">查看密码</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="row">
+            <div class="col-md-4">
+                <p style="margin-top: 10px"> 显示 [{{ page_obj.paginator.count }}] 条数据中的 第 [{{ page_obj.start_index }}] 至
+                    [{{ page_obj.end_index }}] 的数据</p>
+            </div>
+            <div class="col-md-8">
+                {% if page_obj.paginator.num_pages > 1 %}
+                    {% include '_paginator.html' %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

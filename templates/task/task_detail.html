@@ -1,0 +1,238 @@
+{% extends 'base/layout.html' %}
+{% load static %}
+{% load get_users %}
+
+{% block page-content %}
+    <div class="row">
+        <div class="col-lg-5">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">查看任务详情</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <td class="text-right">任务名称</td>
+                                    <td>{{ object.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right">目标主机</td>
+                                    <td>{{ object.dest_hosts.all| get_host_names2}}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right">申请人</td>
+                                    <td>{{ object.applicant }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right">申请时间</td>
+                                    <td>{{ object.created_at }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right">审核人</td>
+                                    <td>{{ object.reviewer|default_if_none:'暂无' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right">审核时间</td>
+                                    <td>{{ object.review_at|default_if_none:'' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right">审核意见</td>
+                                    <td>{{ object.review_notes|default_if_none:'' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right">发布人</td>
+                                    <td>{{ object.publisher|default_if_none:'暂无' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right">发布时间</td>
+                                    <td>{{ object.publish_at|default_if_none:'' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right">状态</td>
+                                    <td><label class="label label-status {% if object.status == 0 %}label-warning
+                                                                         {% elif object.status == 1 %}label-danger
+                                                                         {% elif object.status == 2%}label-info
+                                                                         {% else %}label-success{% endif %}">
+                                        {{ object.get_status_display }}</label></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right">动作</td>
+                                    <td class="task-action">
+                                    {% if object.applicant == user %}
+                                        {% if object.status == 0 or object.status == 1 %}
+                                            <a href="{% url 'task:task_edit' object.id %}" class="btn btn-primary btn-xs">编辑</a>
+                                        {% elif object.status == 2 %}
+                                            <button class="btn btn-primary btn-xs btn-publish">发布</button>
+                                        {% else %}
+                                            <a href="{% url 'task:task_list' %}" class="btn btn-primary btn-xs">任务列表</a>
+                                            <a href="{% url 'task:history' %}" class="btn btn-primary btn-xs">历史列表</a>
+                                            <a href="javascript:void(0)" class="btn btn-primary btn-xs btn-result">查看结果</a>
+                                        {% endif %}
+                                    {% else %}
+                                        <!-- 判断必须有审核权限的人 -->
+                                        {% if object.applicant != user and perms.task.review_task %}
+                                            {% if object.status == 0 %}
+                                                <button class="btn btn-primary btn-xs btn-review" data-status="2">同意</button>
+                                                <button class="btn btn-danger btn-xs btn-review" data-status="1">拒绝</button>
+                                            {% elif object.status == 1 or object.status == 2%}
+                                                <a href="{% url 'task:task_list' %}" class="btn btn-success btn-xs">任务列表</a>
+                                            {% else %}
+                                                <a href="{% url 'task:history' %}" class="btn btn-primary btn-xs">历史列表</a>
+                                                <a href="javascript:void(0)" class="btn btn-primary btn-xs btn-result">查看结果</a>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">配置文件（或Playbook）内容</h3>
+                </div>
+                <div class="panel-body" style="height: 555px">
+                    <pre style="height:500px;overflow: scroll">{{ object.content}}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!--拒绝模态窗-->
+    <div class="modal inmodal fade" id="review_notes" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">请填写拒绝的原因</h4>
+                </div>
+                <div class="modal-body">
+                    <form action="">
+                        <div class="form-group">
+                            <input type="hidden" name="status" id="task_status">
+                            <label class="control-label">审核意见:</label>
+                            <textarea name="review_notes" id='task_review_notes' class="form-control" rows="3" cols="30" required></textarea>
+                            <span class="help-block error-msg name-error-msg"></span>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary btn-submit">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!--执行结果模态窗-->
+    <div class="modal inmodal fade" id="task_result" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">Close</span></button>
+                    <h4 class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <pre id="content"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        /* 点击同意或拒绝按钮 */
+        $('.btn-review').click(function () {
+            var status = $(this).attr('data-status');
+            if(status === '2'){
+                $.ajax({
+                type: 'POST',
+                url: '{% url 'task:task_detail' object.id %}',
+                data:{status: status, review_notes: '同意', csrfmiddlewaretoken: '{{ csrf_token }}'},
+                success: function (result) {
+                    if(result['code'] === 0){
+                        window.location.href = '{% url 'task:task_detail' object.id %}'
+                    }
+                    location.reload();
+                }
+            })}else {
+                //拒绝弹出模态窗、同时把状态传到模态窗 
+                var modal = $('#review_notes');
+                modal.modal('show');
+                modal.find('.modal-body #task_status').val(status);
+            }
+        });
+        /* 拒绝之后的提交 */
+        $('.btn-submit').click(function () {
+            var modal = $('#review_notes');
+            var  status = modal.find('.modal-body #task_status').val();
+            var review_notes = modal.find('.modal-body #task_review_notes').val();
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'task:task_detail' object.id %}',
+                data:{status: status, review_notes: review_notes, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                success: function (result) {
+                    if(result['code'] === 0){
+                        window.location.href = '{% url 'task:task_detail' object.id %}'
+                    }
+                    location.reload();
+                }
+            })
+        });
+
+        /* 点击发布按钮 */
+        // 1、将当前任务提交到后端执行， 2、执行成功之后，将执行结果通过莫泰窗展示来
+        $('.btn-publish').click(function () {
+           $.ajax({
+               type: "POST",
+               url: "{% url 'task:task_publish' object.id %}",
+               data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+               success: function (result) {
+                    console.log(result)
+                    if(result['code'] === 0){
+                        var modal = $('#task_result');
+                        modal.modal("show");
+                        get_task_result(modal, '{{ object.id }}');
+                    }
+                    location.reload();
+                }
+           })
+        });
+
+        /* 获取任务的执行结果 */
+        function get_task_result(modal, task_id) {
+            $.ajax({
+                type: "GET",
+                url: "/task/get_task_result/?task_id=" + task_id,
+                success: function (result) {
+                    modal.find('.modal-body #content').text(result['data']);
+                }
+            })
+        }
+        //点击查看结果按钮
+        $('.task-action').on('click', '.btn-result', function () {
+            var modal = $('#task_result');
+            modal.modal("show");
+            get_task_result(modal, '{{ object.id }}');
+        });
+    </script>
+    <script>
+        $('.task').addClass('active');
+        $('.task .tasks').addClass('active');
+        $('.task .task_history').addClass('active');
+    </script>
+{% endblock %}

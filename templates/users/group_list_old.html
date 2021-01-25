@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load user_tags %}
+{% block css %}
+
+{% endblock %}
+{% block title %}
+    角色列表
+{% endblock %}
+{% block page-title %}
+    角色列表
+{% endblock %}
+{% block page-content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">查看角色列表</h3>
+                </div>
+                <div class="panel-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissable">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="row" style="margin-bottom: 5px">
+                        {% if perms.auth.add_group %}
+                        <div class="col-md-1"><a href="{% url 'users:group_add' %}" class="btn btn-primary">添加角色</a></div>
+                        {% endif %}
+
+                        <div class="col-md-2" style="float: right">
+                            <form class="form-horizontal" role="form">
+
+                                    <div class="input-group">
+                                        <input type="text" id="keyword" name="keyword" value="{{ keyword|default_if_none:'' }}" class="form-control" placeholder="关键字">
+                                        <span class="input-group-btn">
+                                        <button type="submit" class="btn btn-effect-ripple btn-primary">搜索</button>
+                                        </span>
+                                    </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12 col-xs-12">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>组名</th>
+                                        <th>用户</th>
+                                        <th>权限</th>
+                                        {% if perms.auth.change_group or perms.auth.delete_group %}
+                                        <th>动作</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                  {% for group in object_list %}
+                                    <tr>
+                                        <td>{{ group.name }}</td>
+                                        {% comment %} <td>{{ group.user _set.all}}</td>
+                                        <td>{{ group.permissions.all }}</td> {% endcomment %}
+
+                                        <td title="{{ group.user_set.all|get_username }}">{{ group.user_set.all|get_username|cut:30 }}</td>
+                                        <td title="{{ group.permissions.all|get_permname }}">{{ group.permissions.all|get_permname|cut:30 }}</td> 
+
+                                        {% if perms.auth.change_group or perms.group.delete_group %}
+                                        <td>
+                                            {% if perms.auth.change_group %}
+                                            <a href="{% url 'users:group_add_user' group.id %}" class="btn btn-info btn-xs">加用户</a>
+                                            <a href="{% url 'users:group_update' group.id %}" class="btn btn-primary btn-xs">编辑</a>
+                                            {% endif %}
+                                             {% if perms.auth.delete_group %}
+                                             <a href="{% url 'users:group_delete' group.id %}" class="btn btn-danger btn-xs">删除</a>
+                                             {% endif %}
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                           <p style="margin-top: 10px"> 显示 [{{ page_obj.paginator.count }}] 条数据中的 第 [{{ page_obj.start_index }}] 至 [{{ page_obj.end_index }}] 的数据</p>
+                        </div>
+                        <div class="col-md-8">
+                             {% if page_obj.paginator.num_pages > 1 %}
+                                {% include '_paginator.html' %}
+                             {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        $('.user').addClass('active');
+        $('.user .roles').addClass('active');
+    </script>
+{% endblock %}

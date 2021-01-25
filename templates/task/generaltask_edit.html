@@ -1,0 +1,195 @@
+{% extends 'base/layout.html' %}
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/select2/select2.css' %}" />
+    <style>
+         #editor {width: 100%;height: 300px;}
+        .host-link {margin-top: 10px}
+        .host-link .host-tags {margin-right: 5px;cursor: pointer}
+    </style>
+{% endblock %}
+
+{% block page-content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form method="post" class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">任务名称：</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="name" name="name"
+                          value="{{ task.name|default_if_none:'' }}" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group web">
+                        <label class="col-sm-2 control-label">选择主机:</label>
+                        <div class="col-sm-10">
+                            <select data-placeholder="选择一个或多个主机..."
+                                    class="select2"
+                                    id="dest_hosts" name="dest_hosts" multiple tabindex="4">
+                                {% for host in hosts %}
+                                    <option value="{{ host.id }}"
+                                          {% for dhost in task.dest_hosts.all %}
+                                            {% if dhost.id == host.id %}selected{% endif %}
+                                          {% endfor %}>{{ host.instance_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="host-link">
+                                {% for tag in tags %}
+                                    <span class="label label-default host-tags" tagname={{tag.name}}>{{ tag.name_cn }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <label for="" class="col-sm-2 control-label">脚本:</label>
+                        <div class="col-sm-10">
+                            <div id="editor">{{task.content|default_if_none:''}}</div>
+                        </div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <div class="col-sm-4 col-sm-offset-2">
+                            <button class="btn btn-primary btn-submit" type="button">保存</button>
+                            <a href="{{ cancel }}" class="btn btn-primary btn-sm">取消</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+     <script src="{% static 'ace/src/ace.js' %}" type="text/javascript" charset="utf-8"></script>
+    <script src="{% static 'ace/src/theme-chrome.js' %}" type="text/javascript" charset="utf-8"></script>
+    <script src="{% static 'ace/src/mode-nginx.js' %}"></script>
+     <script src="{% static 'ace/src/mode-yaml.js' %}"></script>
+    <script src="{% static 'ace/src/ext-language_tools.js' %}"></script>
+    <script src="{% static 'assets/select2/select2.min.js' %}" type="text/javascript"></script>
+    <script>
+        jQuery(".select2").select2({
+            width: '100%'
+        });
+    </script>
+    <script>
+        var editor = ace.edit("editor");
+            //字体大小
+            editor.setTheme('ace/theme/chrome');
+            editor.session.setMode('ace/mode/yaml');
+            editor.setFontSize(18);
+            //设置只读（true时只读，用于展示代码）
+            editor.setReadOnly(false);
+            //自动换行,设置为off关闭
+            editor.setOption("wrap", "free");
+            //启用提示菜单
+            editor.setOptions({
+                    enableBasicAutocompletion: true,
+                    enableSnippets: true,
+                    enableLiveAutocompletion: true,
+                });
+
+    </script>
+    <script>
+        //获取playbookdemo
+        function get_playbook_demo(){
+            var ids = [];
+            var selected_hosts = $("#dest_hosts").select2('data');
+            $.each(selected_hosts, function (index, value) {
+                ids.push(parseInt(value['id']))
+            });
+
+            var content = editor.getValue();
+            $.ajax({
+                type: 'POST',
+                'url': '/tasks/get_playbook/',
+                data: {'ids': JSON.stringify(ids), 'content': content},
+                success: function (result) {
+                    console.log(result)
+                    if(result['code'] === 0){
+                        var content = result['content'];
+                        editor.setValue(content);
+                    }
+                }
+            })
+        }
+        //点击标签，设置上线的主机
+        $('.web .host-tags').click(function () {
+            var tag = $(this).attr('tagname');
+            $.ajax({
+                // 通过tag获取到对应的主机列表
+                type: 'GET',
+                url: '/cmdb/get_host_list/?tag=' + tag,
+                success: function (result) {
+                    console.log(result)
+                    if (result['code'] === 0) {
+                        // 拿到当前已经选中的主机ID
+                        var dest_hosts = $('#dest_hosts');
+                        var selected_hosts = [];
+                        var tag_hosts = [];
+                        var data = dest_hosts.select2('data');
+                        $.each(data, function (index, value) {
+                           selected_hosts.push(parseInt(value['id']))
+                        });
+                        console.log(selected_hosts)
+
+                        //拿到请求的主机列表，只需要iD即可
+                        var hosts = result['data'];
+                        $.each(hosts, function (index, value) {
+                           tag_hosts.push(parseInt(value['id']))
+                        });
+                        console.log(tag_hosts)
+
+                        // 已经选择的主机和tag拿到的主机取并集
+                        var all_selected_hosts = selected_hosts.concat(tag_hosts);
+                        var set = new Set(all_selected_hosts);
+                        all_selected_hosts = [...set];
+                        dest_hosts.val(all_selected_hosts).change();
+                        get_playbook_demo()
+                    }
+                }
+            })
+        });
+        //监听主机变化事件
+        $('#dest_hosts').on('change', function () {
+            get_playbook_demo();
+        });
+
+         //监听提交按钮点击事件
+        $('.btn-submit').click(function () {
+            var ids = [];
+            var selected_hosts = $("#dest_hosts").select2('data');
+             $.each(selected_hosts, function (index, value) {
+                 ids.push(parseInt(value['id']))
+             });
+            var content = editor.getValue();
+            var name = $('#name').val();
+            if(ids.length === 0 || content === '' || name === ''){
+                swal({
+                    title: '警告',
+                    text: '表单不能为空，请填充完整表单!',
+                    type: 'warning',
+                });
+                return false
+            }
+            $.ajax({
+                 type: 'POST',
+                 url: '/task/edit/'+'{{ task.id }}'+'/',
+                 data: {ids: JSON.stringify(ids), content: content, name: name, csrfmiddlewaretoken:'{{ csrf_token }}'},
+                 success: function (result) {
+                    if(result['code'] === 0){
+                        window.location.href = '/task/list/';
+                    }
+                }
+            })
+        })
+    </script>
+    <script>
+        $('.task').addClass('active');
+        $('.task .general-task-add').addClass('active');
+    </script>
+{% endblock %}

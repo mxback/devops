@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+    
+<head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>{% block title %}{% endblock %}自动化运维平台</title>
+
+        <!-- Bootstrap core CSS -->
+        <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+        <link href="{% static 'css/bootstrap-reset.css' %}" rel="stylesheet">
+        <link href="{% static 'css/bootstrap.min.css.map' %}" rel="stylesheet">
+        
+        
+
+        <!--Animation css-->
+        <link href="{% static 'css/animate.css' %}" rel="stylesheet">
+
+        <!--Icon-fonts css-->
+        <link href="{% static 'assets/font-awesome/css/font-awesome.css' %}" rel="stylesheet" />
+        <link href="{% static 'assets/ionicon/css/ionicons.min.css' %}" rel="stylesheet" />
+
+        <!-- Custom styles for this template -->
+        <link href="{% static 'css/style.css' %}" rel="stylesheet">
+        <link href="{% static 'css/helper.css' %}" rel="stylesheet">
+        {% block css %}{% endblock %}
+
+</head>
+
+<body>
+
+<!-- Aside Start-->
+<aside class="left-panel">
+    <!-- brand -->
+    <div class="logo">
+        <a href="#" class="logo-expanded">
+            <i class="iconfont icon-Ant"></i>
+            <span class="nav-label">自动化运维平台</span>
+        </a>
+    </div>
+    <!-- / brand -->
+
+    <!-- Navbar Start -->
+    <nav class="navigation">
+        <ul class="list-unstyled">
+            <li class="index"><a href="#"><i class="ion-home"></i> <span class="nav-label">仪表盘</span></a></li>
+            <!-- {% if perms.users.view_userprofile or perms.auth.view_group or perms.auth.view_permission %} -->
+            <li class="has-submenu user"><a href="#"><i class="ion-android-social-user"></i> <span class="nav-label">用户权限管理</span></a>
+                <ul class="list-unstyled">
+                <!-- {% if perms.users.view_userprofile %} -->
+                        <li class="users"><a href="{% url 'users:list' %}">用户管理</a></li>
+                <!-- {% endif %} -->
+                <!-- {% if perms.auth.view_group  %} -->
+                        <li class="roles"><a href="#">角色管理</a></li>
+                <!-- {% endif %} -->
+                <!-- {% if perms.auth.view_permission %} -->
+                        <li class="permissions"><a href="#">权限管理</a></li>
+                <!-- {% endif %}         -->
+                </ul>
+            </li>
+            <!-- {% endif %} -->
+
+            <li class="has-submenu cmdb"><a href="#"><i class="fa fa-server"></i> <span class="nav-label">资产管理</span></a>
+                <ul class="list-unstyled">
+                    <li class="users"><a href="#">资产大盘</a></li>
+                    <li class="users"><a href="#">资源管理</a></li>
+                    <li class="type"><a href="#">标签类型</a></li>
+                    <li class="taglist"><a href="#">标签列表</a></li>
+                </ul>
+            </li>
+
+            <!-- {% if perms.tasks.view_task  or perms.tasks.add_task or perms.tasks.view_history %} -->
+                    <li class="has-submenu task"><a href="#"><i class="fa fa-tasks"></i> <span class="nav-label">任务系统</span></a>
+                        <ul class="list-unstyled">
+                            <!-- {% if perms.tasks.add_task %} -->
+                            <li class="task_add"><a href="#">通用任务</a></li>
+                            <!-- {% endif %} -->
+                            <!-- {% if  perms.tasks.view_task %} -->
+                                <li class="task_list"><a href="#">任务列表</a></li>
+                            <!-- {% endif %} -->
+                            <!-- {% if  perms.tasks.view_history %} -->
+                                <li class="task_history"><a href="#">历史列表</a></li>
+                            <!-- {% endif %} -->
+                        </ul>
+                    </li>
+            <!-- {% endif %} -->
+
+        </ul>
+    </nav>
+
+</aside>
+<!-- Aside Ends-->
+
+
+<!--Main Content Start -->
+<section class="content">
+    <!-- Header -->
+    <header class="top-head container-fluid">
+        <button type="button" class="navbar-toggle pull-left">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+
+        <nav class=" navbar-default" role="navigation">
+            <!-- Right navbar -->
+            <ul class="nav navbar-nav navbar-right top-menu top-right-menu">
+                <!-- user login dropdown start-->
+                <li class="dropdown text-center">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                        <img alt="" src="#" class="img-circle profile-img thumb-sm">
+                        <span class="username"> {{ request.user }} </span> <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu pro-menu fadeInUp animated" tabindex="5003" style="overflow: hidden; outline: none;">
+                        <li><a href="#"><i class="fa fa-edit"></i> 修改密码</a></li>
+                        <li><a href="#"><i class="fa fa-sign-out"></i> 退出</a></li>
+                    </ul>
+                </li>
+                <!-- user login dropdown end -->
+            </ul>
+            <!-- End right navbar -->
+        </nav>
+                
+    </header>
+    <!-- Header Ends -->
+
+
+    <!-- Page Content Start -->
+    <div class="wraper container-fluid">
+        <div class="page-title">
+            <h3 class="title">{% block page-title %}自动化运维平台{% endblock %}</h3>
+        </div>
+        {% block page-content %}
+
+        {% endblock %}
+    </div>
+    <!-- Page Content Ends -->
+
+
+    <!-- Footer Start -->
+    <footer class="footer">
+        2020 © 自动化运维平台
+    </footer>
+    <!-- Footer Ends -->
+
+</section>
+<!-- Main Content Ends -->
+        <script src="{% static 'js/jquery.js' %}"></script> 
+        <script src="{% static 'js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/wow.min.js' %}"></script>
+        <script src="{% static 'js/pace.min.js' %}"></script>
+        <!--控制菜单栏点击显示子菜单-->
+        <script src="{% static 'js/jquery.app.js' %}"></script>
+        <!--子菜单点击时，不收缩-->
+        <script src="{% static 'js/jquery.nicescroll.js' %}" ></script>
+      
+
+
+    {% block js %}
+    {% endblock %}
+    
+
+</body>
+</html>

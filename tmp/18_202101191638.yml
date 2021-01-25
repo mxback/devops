@@ -1,0 +1,7 @@
+---
+- hosts: 192.168.205.130
+  remote_user: root
+  gather_facts: no
+  tasks:
+    - name: Hello, World!
+      shell: echo "Hello, World"

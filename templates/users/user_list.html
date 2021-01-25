@@ -1,0 +1,60 @@
+{% extends 'base/layout.html' %}
+{% load get_users %}
+
+{% block page-content %}
+    <div class="luffy-container">
+        <div class="btn-group" style="margin: 5px 0">
+                <a class="btn btn-default" href="{% url 'users:user_add' %}">
+                    <i class="fa fa-plus-square" aria-hidden="true"></i> 添加用户
+                </a>
+        </div>
+        <div style="float: right;">
+            <form method="GET" class="form-inline">
+                <div class="form-group">
+                    <input class="form-control" type="text" name="keyword" value="{{ keyword|default_if_none:'' }}" placeholder="关键字搜索">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>UID</th>
+                <th>用户名</th>
+                <th>中文名</th>
+                <th>手机</th>
+                <th>性别</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in object_list %}
+                 <tr class="gradeA">
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.phone }}</td>
+                    <td>{{ user.get_sex_display }}</td>
+                    <td class="actions">
+                    <a href="{% url 'users:password_change' user.id %}" class="btn btn-warning btn-xs">重置密码</a>
+                    <a href="{% url 'users:user_update' user.id %}" class="btn btn-primary btn-xs">编辑</a>
+                    <a href="{% url 'users:user_del' user.id %}" class="btn btn-danger btn-xs">删除</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="row">
+            <div class="col-md-4">
+               <p style="margin-top: 10px"> 显示 [{{ page_obj.paginator.count }}] 条数据中的 第 [{{ page_obj.start_index }}] 至 [{{ page_obj.end_index }}] 的数据</p>
+            </div>
+            <div class="col-md-8">
+                 {% if page_obj.paginator.num_pages > 1 %}
+                    {% include '_paginator.html' %}
+                 {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

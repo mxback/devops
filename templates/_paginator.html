@@ -1,0 +1,27 @@
+<ul class="pagination m-b-5" style="float: right">
+    {% if page_obj.has_previous %}
+        <li><a href="?page=1">首页</a></li>
+        <li><a href="?page={{ page_obj.previous_page_number }}" aria-label="上一页">上一页</a></li>
+    {% else %}
+        <li><a class="disabled", style="pointer-events: none;">首页</a></li>
+        <li><a class="disabled", style="pointer-events: none;">上一页</a></li>
+    {% endif %}
+    {% for page in page_obj.pages %}
+         {% if page %}
+            {% ifequal page page_obj.number %}
+                <li class="active"><a class="">{{ page }}</a></li>
+            {% else %}
+                <li><a class="" href="?{{ page.querystring }}">{{ page }}</a></li>
+            {% endifequal %}
+        {% else %}
+             <li><a class="" href="javascript:void(0)">...</a></li>
+        {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+        <li><a class="" href="?page={{ page_obj.next_page_number }}">下一页</a></li>
+        <li><a class="" href="?page={{ page_obj.paginator.num_pages }}">尾页</a></li>
+    {% else %}
+        <li><a class="disabled", style="pointer-events: none;">下一页</a></li>
+        <li><a class="disabled", style="pointer-events: none;">尾页</a></li>
+    {% endif %}
+</ul>

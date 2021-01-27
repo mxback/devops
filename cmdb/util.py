@@ -4,7 +4,6 @@ from cmdb.models import Host, Paas, ProjectGroup, Tag
 
 redis_cli = get_redis_connection("hosts")
 
-
 class AutoUpdateHost(object):
 
     def __init__(self, redis_config="hosts"):
@@ -48,6 +47,28 @@ class AutoUpdateHost(object):
                 host_new = Host.objects.filter(private_ip=redis_host_data['ip_address']).first()
                 host_new.project_group.add(default_project_group)
                 # host_new.tags.add(default_tags)
+
+class HostUsageInfo(object):
+    def __init__(self, rds, key):
+        self.rds = rds
+        self.key = key
+        self.columns = []
+        self.cpu_usage_data = []
+        self.memory_usage_data = []
+
+    def host_usage_data(self):
+        for i in range(self.rds.llen(self.key)):
+            self.columns.append(json.loads(self.rds.lrange(self.key, i, i)[0].decode())[2])
+            self.cpu_usage_data.append(json.loads(self.rds.lrange(self.key, i, i)[0].decode())[0])
+            self.memory_usage_data.append(json.loads(self.rds.lrange(self.key, i, i)[0].decode())[1])
+
+    @property
+    def get_cpu_usage_data(self):
+        return self.cpu_usage_data
+
+    @property
+    def get_memory_usage_data(self):
+        return self.memory_usage_data
 
 class AutoUpdateK8S(object):
     pass

@@ -4,6 +4,7 @@ from cmdb.models import Host, Paas, ProjectGroup, Tag
 
 redis_cli = get_redis_connection("hosts")
 
+
 class AutoUpdateHost(object):
 
     def __init__(self, redis_config="hosts"):
@@ -41,34 +42,35 @@ class AutoUpdateHost(object):
                 # host_obj.disk
                 host_obj.private_ip = redis_host_data['ip_address']
                 host_obj.os_type = redis_host_data['system']
-                host_obj.os_name = redis_host_data['system'] # 可获取的更详细
-                host_obj.update_time = redis_host_data['send_time'] #
+                host_obj.os_name = redis_host_data['system']  # 可获取的更详细
+                host_obj.update_time = redis_host_data['send_time']  #
                 host_obj.save()
                 host_new = Host.objects.filter(private_ip=redis_host_data['ip_address']).first()
                 host_new.project_group.add(default_project_group)
                 # host_new.tags.add(default_tags)
 
+
 class HostUsageInfo(object):
-    def __init__(self, rds, key):
-        self.rds = rds
-        self.key = key
+
+    def __init__(self):
         self.columns = []
         self.cpu_usage_data = []
         self.memory_usage_data = []
 
-    def host_usage_data(self):
-        for i in range(self.rds.llen(self.key)):
-            self.columns.append(json.loads(self.rds.lrange(self.key, i, i)[0].decode())[2])
-            self.cpu_usage_data.append(json.loads(self.rds.lrange(self.key, i, i)[0].decode())[0])
-            self.memory_usage_data.append(json.loads(self.rds.lrange(self.key, i, i)[0].decode())[1])
+    def host_usage_data(self, rds, key):
+        for i in range(rds.llen(key)):
+            self.columns.append(json.loads(rds.lrange(key, i, i)[0].decode())[2])
+            self.cpu_usage_data.append(json.loads(rds.lrange(key, i, i)[0].decode())[0])
+            self.memory_usage_data.append(json.loads(rds.lrange(key, i, i)[0].decode())[1])
+        return self.columns, self.cpu_usage_data, self.memory_usage_data
 
-    @property
-    def get_cpu_usage_data(self):
-        return self.cpu_usage_data
+    @classmethod
+    def get_usage_data(cls, rds, key):
+        columns, cpu_usage_data, memory_usage_data = cls().host_usage_data(rds, key)
+        return list(reversed(columns)), list(reversed(cpu_usage_data)), list(reversed(memory_usage_data))
 
-    @property
-    def get_memory_usage_data(self):
-        return self.memory_usage_data
+#a, b, c = HostUsageInfo(rds, key).get_usage_data(rds, key)
+
 
 class AutoUpdateK8S(object):
     pass
